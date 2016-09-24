@@ -1,5 +1,6 @@
 require 'rspec'
 require 'p02_hashing'
+require 'byebug'
 
 describe "Hashing" do
   describe Array do
@@ -15,6 +16,7 @@ describe "Hashing" do
     it "should produce the same hash for two equivalent arrays" do
       a = [1, 2, 3]
       b = [1, 2, 3]
+
       expect(a.hash).to eq(b.hash)
     end
 

@@ -2,6 +2,7 @@ require_relative 'p02_hashing'
 require_relative 'p04_linked_list'
 
 class HashMap
+  include Enumerable
   attr_reader :count
 
   def initialize(num_buckets = 8)
@@ -10,38 +11,66 @@ class HashMap
   end
 
   def include?(key)
+    return false if self[key].nil?
+    true
   end
 
   def set(key, val)
+    if @store[key.hash % num_buckets].include?(key)
+      @store[key.hash % num_buckets].remove(key)
+      @store[key.hash % num_buckets].insert(key, val)
+    else
+      @store[key.hash % num_buckets].insert(key, val)
+      @count +=1
+    end
+    resize! if @count > num_buckets
   end
 
   def get(key)
+    #returns a value, not key
+    @store[key.hash % num_buckets].get(key)
   end
 
   def delete(key)
+    if include?(key)
+      @store[key.hash % num_buckets].remove(key)
+      @count -=1
+    end
   end
 
-  def each
+  def each(&prc)
+    @store.each do |linked_list|
+      linked_list.each do |link|
+        prc.call(link.key, link.val)
+      end
+    end
   end
 
   # uncomment when you have Enumerable included
-  # def to_s
-  #   pairs = inject([]) do |strs, (k, v)|
-  #     strs << "#{k.to_s} => #{v.to_s}"
-  #   end
-  #   "{\n" + pairs.join(",\n") + "\n}"
-  # end
+  def to_s
+    pairs = inject([]) do |strs, (k, v)|
+      strs << "#{k.to_s} => #{v.to_s}"
+    end
+    "{\n" + pairs.join(",\n") + "\n}"
+  end
+  private
 
   alias_method :[], :get
   alias_method :[]=, :set
-
-  private
 
   def num_buckets
     @store.length
   end
 
   def resize!
+    arr = @store
+    @store = Array.new(num_buckets * 2) {LinkedList.new}
+    @count = 0
+    arr.each do |linked_list|
+      linked_list.each do |link|
+        self[link.key] = link.val
+      end
+    end
   end
 
   def bucket(key)
